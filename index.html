@@ -2185,25 +2185,12 @@ function renderAdmin(){ renderAdminGallery(); renderAdminVideos(); renderAdminNo
 renderGallery(); renderVideos(); renderNotices(); renderAbout();
 
 // Load saved timings
-(function(){
-  const days  = STORE.getStr('timingDays');
-  const hours = STORE.getStr('timingHours');
-  if(days || hours){
-    const el = document.getElementById('displayTimings');
-    if(el) el.innerHTML = (days||'Monday – Saturday')+'<br>'+(hours||'3:00 PM– 7:00 PM');
-  }
-  // Load saved location
-  const loc = STORE.getStr('location');
-  if(loc){
-    const locEl = document.getElementById('displayLocation');
-    if(locEl) locEl.textContent = loc;
-    const mapLink = document.getElementById('mapLink');
-    if(mapLink) mapLink.href = 'https://www.google.com/maps/search/'+encodeURIComponent(loc);
-    const mapLabel = document.getElementById('mapLinkLabel');
-    if(mapLabel) mapLabel.textContent = loc;
-  }
-})();
+// Timings and Location Fixed
+const el = document.getElementById('displayTimings');
+if(el) el.innerHTML = 'Monday – Saturday<br>3:00 PM - 7:00 PM';
 
+const locEl = document.getElementById('displayLocation');
+if(locEl) locEl.textContent = 'Basti Mahran Road, Near Women Noor Park, Muzaffargarh, Punjab, Pakistan';
 // Default notices if empty
 if(!STORE.get('notices').length){
   STORE.set('notices',[
