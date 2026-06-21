@@ -2190,7 +2190,7 @@ renderGallery(); renderVideos(); renderNotices(); renderAbout();
   const hours = STORE.getStr('timingHours');
   if(days || hours){
     const el = document.getElementById('displayTimings');
-    if(el) el.innerHTML = (days||'Monday – Saturday')+'<br>'+(hours||'3:00 AM – 7:00 PM');
+    if(el) el.innerHTML = (days||'Monday – Saturday')+'<br>'+(hours||'3:00 PM– 7:00 PM');
   }
   // Load saved location
   const loc = STORE.getStr('location');
