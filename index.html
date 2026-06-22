@@ -280,6 +280,15 @@
     0%   { object-position: center 20%; }
     100% { object-position: center 40%; }
   }
+  @media (max-width: 768px) {
+  .hero-banner-img {
+    object-fit: contain !important;
+    object-position: center center !important;
+    animation: none !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+}
   .hero-banner-overlay {
     position: absolute; inset: 0; z-index: 1;
     background:
@@ -1228,7 +1237,7 @@
     <a href="#admission">Admission</a>
     <a href="#contact">Contact</a>
   </div>
-  <div class="footer-credit">Created by SHAHZAIB ARSHAD KHAGGA</div>
+  <div class="footer-credit">Designed & built with ♥️ by SHAHZAIB ARSHAD KHAGGA</div>
 </footer>
 
 <!-- ADMIN LOGIN MODAL -->
