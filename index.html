@@ -1142,33 +1142,34 @@
     <h2 class="section-title">Online Admission</h2>
   </div>
   <div class="admission-inner reveal">
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label" for="admName">Full Name</label>
-        <input class="form-input" type="text" id="admName" placeholder="Your Full Name">
+    <form action="https://formspree.io/f/xzdlpjdv" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="admName">Full Name</label>
+          <input class="form-input" type="text" id="admName" name="Student Name" placeholder="Your Full Name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="admClass">Class / Grade</label>
+          <input class="form-input" type="text" id="admClass" name="Class" placeholder="e.g. 9th Science" required>
+        </div>
       </div>
       <div class="form-group">
-        <label class="form-label" for="admClass">Class / Grade</label>
-        <input class="form-input" type="text" id="admClass" placeholder="e.g. 9th Science">
+        <label class="form-label" for="admPhone">Phone Number</label>
+        <input class="form-input" type="tel" id="admPhone" name="Phone Number" placeholder="+92 3XX XXXXXXX" required>
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="admPhone">Phone Number</label>
-      <input class="form-input" type="tel" id="admPhone" placeholder="+92 3XX XXXXXXX">
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="admAddress">Address</label>
-      <input class="form-input" type="text" id="admAddress" placeholder="Your Home Address">
-    </div>
-    <div class="admission-btns">
-      <button class="btn-primary" onclick="submitAdmission()" style="border:none;cursor:pointer;">
-        Submit Application
-      </button>
-      <a href="https://wa.me/923455691688" target="_blank" class="btn-whatsapp">
-        <span>💬</span> Apply via WhatsApp
-      </a>
-    </div>
-    <div id="admSuccess" class="success-msg">✅ Application submitted! We will contact you soon.</div>
+      <div class="form-group">
+        <label class="form-label" for="admAddress">Address</label>
+        <input class="form-input" type="text" id="admAddress" name="Address" placeholder="Your Home Address" required>
+      </div>
+      <div class="admission-btns">
+        <button type="submit" class="btn-primary" style="border:none;cursor:pointer;">
+          Submit Application
+        </button>
+        <a href="https://wa.me/923455691688" target="_blank" class="btn-whatsapp">
+          <span>💬</span> Apply via WhatsApp
+        </a>
+      </div>
+    </form>
   </div>
 </section>
 
@@ -2140,18 +2141,18 @@ function addAboutCard(){
 
 // ─── ADMISSION ───
 function submitAdmission(){
-  const name=document.getElementById('admName').value.trim();
-  const cls=document.getElementById('admClass').value.trim();
-  const phone=document.getElementById('admPhone').value.trim();
-  const addr=document.getElementById('admAddress').value.trim();
-  if(!name||!cls||!phone){ toast('Please fill Name, Class & Phone'); return; }
-  const apps = STORE.get('admissions');
-  apps.push({id:Date.now(), name, cls, phone, addr, date:new Date().toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'})});
-  STORE.set('admissions', apps);
-  document.getElementById('admName').value=''; document.getElementById('admClass').value='';
-  document.getElementById('admPhone').value=''; document.getElementById('admAddress').value='';
-  document.getElementById('admSuccess').style.display='block';
-  setTimeout(()=>document.getElementById('admSuccess').style.display='none', 4000);
+    const name=document.getElementById('admName').value.trim();
+    const cls=document.getElementById('admClass').value.trim();
+    const phone=document.getElementById('admPhone').value.trim();
+    const addr=document.getElementById('admAddress').value.trim();
+    if(!name||!cls||!phone){ toast('📋 Please fill Name, Class & Phone'); return; }
+    const apps = STORE.get('admissions');
+    apps.push({id:Date.now(), name, cls, phone, addr, date:new Date().toLocaleDateString('en-PK',{day:'2-digit',month:'short',year:'numeric'})});
+    STORE.set('admissions', apps);
+    document.getElementById('admName').value=''; document.getElementById('admClass').value='';
+    document.getElementById('admPhone').value=''; document.getElementById('admAddress').value='';
+    document.getElementById('admSuccess').style.display='block';
+    setTimeout(()=>document.getElementById('admSuccess').style.display='none', 4000);
 }
 function renderAdminAdmissions(){
   const apps = STORE.get('admissions');
