@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secret Admin Portal — Admire Academy</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+:root { --maroon: #5A1E2B; --maroon-deep: #3D1219; --gold: #C9A45C; --gold-light: #E2C07A; --ivory: #F5EBD8; --brown: #2B1A17; --text-light: #F0E4CC; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', sans-serif; background: var(--brown); color: var(--text-light); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.auth-box { background: linear-gradient(135deg, var(--maroon-deep), var(--maroon)); border: 2px solid var(--gold); padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.auth-box h2 { font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 20px; }
+.inp { width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(201,164,92,0.3); border-radius: 6px; color: #fff; font-size: 14px; outline: none; margin-bottom: 15px; transition: 0.3s; }
+.inp:focus { border-color: var(--gold); }
+.btn { width: 100%; padding: 12px; background: linear-gradient(135deg, var(--gold-light), var(--gold)); border: none; border-radius: 6px; color: var(--brown); font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.3s; }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 15px rgba(201,164,92,0.4); }
+.dashboard { display: none; width: 100%; max-width: 900px; background: rgba(10,10,10,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 30px; border-radius: 12px; backdrop-filter: blur(10px); }
+.dash-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--gold); padding-bottom: 15px; margin-bottom: 30px; }
+.dash-header h1 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 24px; }
+.logout-btn { padding: 8px 16px; background: transparent; border: 1px solid #f87171; color: #f87171; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: 0.3s; }
+.logout-btn:hover { background: #f87171; color: #fff; }
+.tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+.tab { padding: 10px 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.3s; }
+.tab.active, .tab:hover { background: var(--maroon); border-color: var(--gold); color: var(--gold); }
+.pane { display: none; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03); padding: 20px; border-radius: 8px; }
+.pane.active { display: block; }
+.pane h3 { font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 15px; font-size: 18px; }
+.item-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; margin-bottom: 10px; }
+.del-btn { padding: 4px 10px; background: rgba(239,68,68,0.15); border: 1px solid #ef4444; color: #f87171; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.del-btn:hover { background: #ef4444; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="auth-box" id="authShield">
+  <h2>Admire Portal Control</h2>
+  <input class="inp" type="password" id="portalPass" placeholder="Enter Secure Master Password">
+  <button class="btn" onclick="verifyAccess()">Unlock Terminal →</button>
+</div>
+
+<div class="dashboard" id="mainConsole">
+  <div class="dash-header">
+    <h1>Master Academy Console</h1>
+    <button class="logout-btn" onclick="lockConsole()">Lock Console ⏻</button>
+  </div>
+  
+  <div class="tabs">
+    <div class="tab active" onclick="switchPane('gallery', this)">🖼️ Gallery Management</div>
+    <div class="tab" onclick="switchPane('videos', this)">🎬 Video Links</div>
+    <div class="tab" onclick="switchPane('notices', this)">📢 Notices & Alerts</div>
+  </div>
+
+  <div class="pane active" id="pane-gallery">
+    <h3>Upload New Image (Local Node Engine)</h3>
+    <input class="inp" type="file" id="imgFile" accept="image/*">
+    <input class="inp" type="text" id="imgCaption" placeholder="Image Caption/Label (Optional)">
+    <button class="btn" onclick="saveGalleryImage()">Save to Gallery Layout</button>
+    <div style="margin-top: 25px;" id="galleryList"></div>
+  </div>
+
+  <div class="pane" id="pane-videos">
+    <h3>Add YouTube Video Reference</h3>
+    <input class="inp" type="text" id="vidTitle" placeholder="Video Title">
+    <input class="inp" type="text" id="vidUrl" placeholder="YouTube Video URL">
+    <button class="btn" onclick="saveVideoLink()">Deploy Video Stream</button>
+    <div style="margin-top: 25px;" id="videoList"></div>
+  </div>
+
+  <div class="pane" id="pane-notices">
+    <h3>Publish Board Announcement</h3>
+    <input class="inp" type="text" id="noteTitle" placeholder="Notice Title">
+    <textarea class="inp" id="noteText" placeholder="Full Announcement Text Content" rows="4"></textarea>
+    <button class="btn" onclick="saveNoticeBoard()">Broadcast Announcement</button>
+    <div style="margin-top: 25px;" id="noticeList"></div>
+  </div>
+</div>
+
+<script>
+// Security Protocol Layer
+function verifyAccess(){
+  const p = document.getElementById('portalPass').value;
+  if(p === 'admire1234') { // Aap apna password yahan change kar sakte hain
+    document.getElementById('authShield').style.display = 'none';
+    document.getElementById('mainConsole').style.display = 'block';
+    document.body.style.alignItems = 'flex-start';
+    renderDashboardLists();
+  } else {
+    alert('Security Alert: Access Denied Matrix Clashed.');
+  }
+}
+
+function lockConsole(){
+  document.getElementById('portalPass').value = '';
+  document.getElementById('authShield').style.display = 'block';
+  document.getElementById('mainConsole').style.display = 'none';
+  document.body.style.alignItems = 'center';
+}
+
+function switchPane(id, tabEl){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  tabEl.classList.add('active');
+}
+
+// Data Handling Matrix (Shared localStorage scope with index.html)
+function getStorage(k){ return JSON.parse(localStorage.getItem('aa_'+k)) || []; }
+function setStorage(k, v){ localStorage.setItem('aa_'+k, JSON.stringify(v)); renderDashboardLists(); }
+
+function saveGalleryImage(){
+  const file = document.getElementById('imgFile').files[0];
+  const caption = document.getElementById('imgCaption').value.trim();
+  if(!file){ alert('Select an image file first.'); return; }
+  
+  const r = new FileReader();
+  r.onload = function(e){
+    const d = getStorage('gallery');
+    d.unshift({ id: Date.now(), src: e.target.result, caption });
+    setStorage('gallery', d);
+    document.getElementById('imgFile').value = '';
+    document.getElementById('imgCaption').value = '';
+  };
+  r.readAsDataURL(file);
+}
+
+function saveVideoLink(){
+  const t = document.getElementById('vidTitle').value.trim();
+  const u = document.getElementById('vidUrl').value.trim();
+  if(!t || !u){ alert('Fill out title and link parameters.'); return; }
+  const d = getStorage('videos');
+  d.unshift({ id: Date.now(), title: t, url: u });
+  setStorage('videos', d);
+  document.getElementById('vidTitle').value = '';
+  document.getElementById('vidUrl').value = '';
+}
+
+function saveNoticeBoard(){
+  const t = document.getElementById('noteTitle').value.trim();
+  const txt = document.getElementById('noteText').value.trim();
+  if(!t || !txt){ alert('Enter notice content completely.'); return; }
+  const d = getStorage('notices');
+  d.unshift({ id: Date.now(), title: t, text: txt, date: new Date().toLocaleDateString() });
+  setStorage('notices', d);
+  document.getElementById('noteTitle').value = '';
+  document.getElementById('noteText').value = '';
+}
+
+function deleteItem(type, id){
+  if(!confirm('Confirm complete index wipe parameters?')) return;
+  const d = getStorage(type).filter(item => item.id !== id);
+  setStorage(type, d);
+}
+
+function renderDashboardLists(){
+  document.getElementById('galleryList').innerHTML = getStorage('gallery').map(i => `
+    <div class="item-row"><span>🖼️ ${i.caption || 'Image Asset'}</span><button class="del-btn" onclick="deleteItem('gallery', ${i.id})">Wipe</button></div>
+  `).join('');
+  
+  document.getElementById('videoList').innerHTML = getStorage('videos').map(v => `
+    <div class="item-row"><span>🎬 ${v.title}</span><button class="del-btn" onclick="deleteItem('videos', ${v.id})">Wipe</button></div>
+  `).join('');
+  
+  document.getElementById('noticeList').innerHTML = getStorage('notices').map(n => `
+    <div class="item-row"><span>📢 [${n.date}] ${n.title}</span><button class="del-btn" onclick="deleteItem('notices', ${n.id})">Wipe</button></div>
+  `).join('');
+}
+</script>
+</body>
+</html>
