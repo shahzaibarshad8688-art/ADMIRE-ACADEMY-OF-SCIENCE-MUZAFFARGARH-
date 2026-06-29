@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admire Portal Control - Unlimited Storage</title>
+  <title>Admire Portal Control - Smart Mode</title>
   <style>
     :root {
       --bg-dark: #0d1117;
@@ -53,7 +53,6 @@
       font-weight: bold;
     }
     button:hover { opacity: 0.9; }
-    button:disabled { background: #30363d; cursor: not-allowed; }
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
     .tab {
       background: var(--bg-dark);
@@ -83,41 +82,35 @@
       margin: 0;
       padding: 5px 10px;
     }
-    #loadingStatus {
-      color: var(--accent);
-      font-weight: bold;
-      margin-bottom: 15px;
-      display: none;
-      text-align: center;
-    }
+    #statusText { color: var(--accent); font-weight: bold; text-align: center; margin-bottom: 15px; display: none; }
   </style>
 </head>
 <body>
 
   <div id="authShield" class="container">
-    <h2>🔑 Admire Admin Control (Cloud Mode)</h2>
+    <h2>🔑 Admire Admin Control</h2>
     <input type="password" id="portalPass" placeholder="Enter Secure Master Password...">
     <button onclick="verifyAccess()">Unlock Terminal →</button>
   </div>
 
   <div id="mainConsole" class="container" style="display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>⚙️ Cloud Dashboard</h3>
+      <h3>⚙️ Smart Dashboard</h3>
       <button onclick="lockConsole()" style="width:auto; background:var(--border-color); padding:5px 10px;">Lock</button>
     </div>
     
     <div class="tabs">
-      <div class="tab active" onclick="switchPane('gallery', this)">🖼️ Gallery (Unlimited)</div>
+      <div class="tab active" onclick="switchPane('gallery', this)">🖼️ Gallery (Auto-Compress)</div>
       <div class="tab" onclick="switchPane('videos', this)">🎬 Videos</div>
       <div class="tab" onclick="switchPane('notices', this)">📢 Notices</div>
     </div>
 
-    <div id="loadingStatus">⏳ Cloud Streaming Active... Please Wait...</div>
+    <div id="statusText">⏳ Processing Image Security Matrix... Please wait...</div>
 
     <div id="pane-gallery" class="pane active">
       <input type="file" id="imgFile" accept="image/*">
       <input type="text" id="imgCaption" placeholder="Image Caption (Optional)...">
-      <button id="uploadBtn" onclick="saveGalleryImage()">Save to Gallery Layout</button>
+      <button onclick="saveGalleryImage()">Save to Gallery Layout</button>
       <div id="galleryList"></div>
     </div>
 
@@ -137,8 +130,6 @@
   </div>
 
 <script>
-const IMGUR_CLIENT_ID = "440c863a6c07a70"; // Imgur Open Gateway Client
-
 function verifyAccess(){
   const p = document.getElementById('portalPass').value;
   if(p === 'admire1234') {
@@ -166,53 +157,59 @@ function switchPane(id, tabEl){
 function getStorage(k){ return JSON.parse(localStorage.getItem('aa_'+k)) || []; }
 function setStorage(k, v){ localStorage.setItem('aa_'+k, JSON.stringify(v)); renderDashboardLists(); }
 
+// Smart Auto-Compress Engine
 function saveGalleryImage(){
   const fileInput = document.getElementById('imgFile');
   const captionInput = document.getElementById('imgCaption');
-  const uploadBtn = document.getElementById('uploadBtn');
-  const loadingStatus = document.getElementById('loadingStatus');
   const file = fileInput.files[0];
   const caption = captionInput.value.trim();
+  const status = document.getElementById('statusText');
   
   if(!file){ alert('Select an image file first.'); return; }
   
-  // Set UI to loading state
-  uploadBtn.disabled = true;
-  loadingStatus.style.display = "block";
+  status.style.display = "block";
   
-  let formData = new FormData();
-  formData.append("image", file);
-  
-  // Stream to cloud engine
-  fetch("https://api.imgur.com/3/image", {
-    method: "POST",
-    headers: {
-      Authorization: `Client-ID ${IMGUR_CLIENT_ID}`
-    },
-    body: formData
-  })
-  .then(res => res.json())
-  .then(json => {
-    if(json.success) {
-      const cloudUrl = json.data.link;
-      const d = getStorage('gallery');
-      d.unshift({ id: Date.now(), src: cloudUrl, caption: caption });
-      setStorage('gallery', d);
+  const reader = new FileReader();
+  reader.onload = function(event){
+    const img = new Image();
+    img.onload = function(){
+      // Web standard compression dimensions
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
       
-      fileInput.value = '';
-      captionInput.value = '';
-      alert('Success: 4K Cloud Image deployed to website perfectly!');
-    } else {
-      alert('Cloud Gateway Refused Stream. Try again.');
-    }
-  })
-  .catch(err => {
-    alert('Network Matrix Error. Check connection.');
-  })
-  .finally(() => {
-    uploadBtn.disabled = false;
-    loadingStatus.style.display = "none";
-  });
+      // Resize logic if image is huge
+      const max_size = 1200;
+      if (width > height) {
+        if (width > max_size) { height *= max_size / width; width = max_size; }
+      } else {
+        if (height > max_size) { width *= max_size / height; height = max_size; }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('canvas-2d' in canvas ? 'canvas-2d' : '2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Auto compress to optimized JPEG format
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      
+      try {
+        const d = getStorage('gallery');
+        d.unshift({ id: Date.now(), src: compressedDataUrl, caption: caption });
+        setStorage('gallery', d);
+        fileInput.value = '';
+        captionInput.value = '';
+        status.style.display = "none";
+        alert('Success: Image optimized and deployed to website perfectly!');
+      } catch(err) {
+        status.style.display = "none";
+        alert('Storage space threshold crossed. Please Wipe some old images from list below.');
+      }
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function saveVideoLink(){
@@ -240,7 +237,7 @@ function saveNoticeBoard(){
 }
 
 function deleteItem(type, id){
-  if(!confirm('Confirm deletion from engine indexes?')) return;
+  if(!confirm('Confirm deletion?')) return;
   const d = getStorage(type).filter(item => item.id !== id);
   setStorage(type, d);
 }
@@ -250,7 +247,7 @@ function renderDashboardLists(){
   const vl = document.getElementById('videoList');
   const nl = document.getElementById('noticeList');
   
-  if(gl) gl.innerHTML = getStorage('gallery').map(i => `<div class="item-row"><span>🖼️ ${i.caption || 'Cloud Asset'}</span><button class="del-btn" onclick="deleteItem('gallery', ${i.id})">Wipe</button></div>`).join('');
+  if(gl) gl.innerHTML = getStorage('gallery').map(i => `<div class="item-row"><span>🖼️ ${i.caption || 'Optimized Asset'}</span><button class="del-btn" onclick="deleteItem('gallery', ${i.id})">Wipe</button></div>`).join('');
   if(vl) vl.innerHTML = getStorage('videos').map(v => `<div class="item-row"><span>🎬 ${v.title}</span><button class="del-btn" onclick="deleteItem('videos', ${v.id})">Wipe</button></div>`).join('');
   if(nl) nl.innerHTML = getStorage('notices').map(n => `<div class="item-row"><span>📢 [${n.date}] ${n.title}</span><button class="del-btn" onclick="deleteItem('notices', ${n.id})">Wipe</button></div>`).join('');
 }
