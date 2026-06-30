@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admire Portal Control - Smart Mode</title>
+  <title>Admire Portal Control - Fixed Smart Mode</title>
   <style>
     :root {
       --bg-dark: #0d1117;
@@ -81,8 +81,11 @@
       width: auto;
       margin: 0;
       padding: 5px 10px;
+      color: white;
+      border-radius: 4px;
     }
     #statusText { color: var(--accent); font-weight: bold; text-align: center; margin-bottom: 15px; display: none; }
+    .preview-list { margin-top: 20px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
   </style>
 </head>
 <body>
@@ -100,7 +103,7 @@
     </div>
     
     <div class="tabs">
-      <div class="tab active" onclick="switchPane('gallery', this)">🖼️ Gallery (Auto-Compress)</div>
+      <div class="tab active" onclick="switchPane('gallery', this)">🖼️ Gallery Management</div>
       <div class="tab" onclick="switchPane('videos', this)">🎬 Videos</div>
       <div class="tab" onclick="switchPane('notices', this)">📢 Notices</div>
     </div>
@@ -111,21 +114,24 @@
       <input type="file" id="imgFile" accept="image/*">
       <input type="text" id="imgCaption" placeholder="Image Caption (Optional)...">
       <button onclick="saveGalleryImage()">Save to Gallery Layout</button>
-      <div id="galleryList"></div>
+      <h3>📋 Uploaded Images List</h3>
+      <div id="galleryList" class="preview-list"></div>
     </div>
 
     <div id="pane-videos" class="pane">
       <input type="text" id="vidTitle" placeholder="Video Title...">
       <input type="text" id="vidUrl" placeholder="YouTube Video URL...">
       <button onclick="saveVideoLink()">Save Video Link</button>
-      <div id="videoList"></div>
+      <h3>📋 Uploaded Videos List</h3>
+      <div id="videoList" class="preview-list"></div>
     </div>
 
     <div id="pane-notices" class="pane">
       <input type="text" id="noteTitle" placeholder="Notice Heading...">
       <textarea id="noteText" placeholder="Notice Content Description..." rows="4"></textarea>
       <button onclick="saveNoticeBoard()">Publish Announcement</button>
-      <div id="noticeList"></div>
+      <h3>📋 Published Announcements</h3>
+      <div id="noticeList" class="preview-list"></div>
     </div>
   </div>
 
@@ -157,7 +163,6 @@ function switchPane(id, tabEl){
 function getStorage(k){ return JSON.parse(localStorage.getItem('aa_'+k)) || []; }
 function setStorage(k, v){ localStorage.setItem('aa_'+k, JSON.stringify(v)); renderDashboardLists(); }
 
-// Smart Auto-Compress Engine
 function saveGalleryImage(){
   const fileInput = document.getElementById('imgFile');
   const captionInput = document.getElementById('imgCaption');
@@ -173,13 +178,11 @@ function saveGalleryImage(){
   reader.onload = function(event){
     const img = new Image();
     img.onload = function(){
-      // Web standard compression dimensions
       const canvas = document.createElement('canvas');
       let width = img.width;
       let height = img.height;
       
-      // Resize logic if image is huge
-      const max_size = 1200;
+      const max_size = 1000; 
       if (width > height) {
         if (width > max_size) { height *= max_size / width; width = max_size; }
       } else {
@@ -188,15 +191,14 @@ function saveGalleryImage(){
       
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext('canvas-2d' in canvas ? 'canvas-2d' : '2d');
+      const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
       
-      // Auto compress to optimized JPEG format
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
       
       try {
         const d = getStorage('gallery');
-        d.unshift({ id: Date.now(), src: compressedDataUrl, caption: caption });
+        d.unshift({ id: Date.now(), src: compressedDataUrl, caption: caption || 'Gallery Image Asset' });
         setStorage('gallery', d);
         fileInput.value = '';
         captionInput.value = '';
@@ -204,7 +206,7 @@ function saveGalleryImage(){
         alert('Success: Image optimized and deployed to website perfectly!');
       } catch(err) {
         status.style.display = "none";
-        alert('Storage space threshold crossed. Please Wipe some old images from list below.');
+        alert('Storage full. Please wipe some old assets first.');
       }
     };
     img.src = event.target.result;
@@ -247,7 +249,7 @@ function renderDashboardLists(){
   const vl = document.getElementById('videoList');
   const nl = document.getElementById('noticeList');
   
-  if(gl) gl.innerHTML = getStorage('gallery').map(i => `<div class="item-row"><span>🖼️ ${i.caption || 'Optimized Asset'}</span><button class="del-btn" onclick="deleteItem('gallery', ${i.id})">Wipe</button></div>`).join('');
+  if(gl) gl.innerHTML = getStorage('gallery').map(i => `<div class="item-row"><span>🖼️ ${i.caption}</span><button class="del-btn" onclick="deleteItem('gallery', ${i.id})">Wipe</button></div>`).join('');
   if(vl) vl.innerHTML = getStorage('videos').map(v => `<div class="item-row"><span>🎬 ${v.title}</span><button class="del-btn" onclick="deleteItem('videos', ${v.id})">Wipe</button></div>`).join('');
   if(nl) nl.innerHTML = getStorage('notices').map(n => `<div class="item-row"><span>📢 [${n.date}] ${n.title}</span><button class="del-btn" onclick="deleteItem('notices', ${n.id})">Wipe</button></div>`).join('');
 }
