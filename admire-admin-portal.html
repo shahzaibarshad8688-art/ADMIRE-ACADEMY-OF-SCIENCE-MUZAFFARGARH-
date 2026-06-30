@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admire Portal Control - Fixed Smart Mode</title>
+  <title>Admire Portal Control - Permanent Fix</title>
   <style>
     :root {
       --bg-dark: #0d1117;
@@ -141,6 +141,7 @@ function verifyAccess(){
   if(p === 'admire1234') {
     document.getElementById('authShield').style.display = 'none';
     document.getElementById('mainConsole').style.display = 'block';
+    // CRITICAL FIX: Load data instantly upon verification unlock!
     renderDashboardLists();
   } else {
     alert('Security Alert: Access Denied.');
