@@ -1247,20 +1247,36 @@
   sections.forEach(id => { const el=document.getElementById(id); if(el) io.observe(el); });
 })();
 
-// ─── DATA STORE (localStorage) ───
-// —— DATA STORE (localStorage) ——
-const STORE = {
-    get: k => { try { return JSON.parse(localStorage.getItem('aa_'+k)) || []; } catch (e) { return []; } },
-    set: (k,v) => localStorage.setItem('aa_'+k, JSON.stringify(v)),
-    getStr: k => localStorage.getItem('aa_'+k) || '',
-    setStr: (k,v) => localStorage.setItem('aa_'+k, v)
-};
+// —— DYNAMIC DATA MATRIX (Global Live Mode) ——
+// Bhai jaan, ab images aur videos bina localStorage ke sabhi browsers par live chalengi!
+const GLOBAL_GALLERY_DATA = [
+    {
+        id: 1,
+        src: "https://shahzaibarshad8688-art.github.io/ADMIRE-ACADEMY-OF-SCIENCE-MUZAFFARGARH-/ADMIRE ACADEMY OF SCIENCE MU...GARH  ADMISSION OPEN2026 (2).png",
+        caption: "Admire Academy Admission Open 2026"
+    }
+];
+
+const GLOBAL_VIDEO_DATA = [
+    // Agar future mein koi video live dikhani ho toh aap niche link add kar sakte hain
+];
+
+const GLOBAL_NOTICE_DATA = [
+    {
+        id: 1,
+        title: "Admissions Open 2026",
+        date: "14/07/2026",
+        text: "Admire Academy of Science Muzaffargarh mein admission ka baqaida aghaaz ho chuka hai. Jald az jald apni registration mukammal karwein!"
+    }
+];
 
 // 🖼️ Gallery Integration & Full-Screen Lightbox Matrix
 function loadGallery() {
     const galleryGrid = document.querySelector('#gallery .grid');
     if (!galleryGrid) return;
-    const images = STORE.get('gallery');
+    
+    // Globally defined images load karein taake sab ko nazar aayein
+    const images = GLOBAL_GALLERY_DATA;
 
     if (images.length === 0) {
         galleryGrid.innerHTML = '<p style="color:var(--text-light); text-align:center; grid-column: 1/-1;">No campus life moments captured yet.</p>';
@@ -1269,7 +1285,7 @@ function loadGallery() {
 
     galleryGrid.innerHTML = images.map((img, index) => `
         <div class="grid-item gallery-item" onclick="openLightbox(${index})" style="cursor:pointer;">
-            <img src="${img.src}" alt="${img.caption || 'Campus Life'}" style="width:100%; border-radius:8px;">
+            <img src="${img.src}" alt="${img.caption || 'Campus Life'}" style="width:100%; border-radius:8px;" onerror="this.src='ADMIRE ACADEMY OF SCIENCE MU...GARH  ADMISSION OPEN2026 (2).png'">
             <p style="color:var(--text-light); text-align:center; margin-top:10px; font-size:14px;">${img.caption || ''}</p>
         </div>
     `).join('');
@@ -1278,7 +1294,7 @@ function loadGallery() {
 let currentLightboxIndex = 0;
 
 function openLightbox(index) {
-    const images = STORE.get('gallery');
+    const images = GLOBAL_GALLERY_DATA;
     if (!images[index]) return;
     currentLightboxIndex = index;
 
@@ -1310,7 +1326,7 @@ function closeLightbox() {
 }
 
 function changeLightboxImage(n) {
-    const images = STORE.get('gallery');
+    const images = GLOBAL_GALLERY_DATA;
     currentLightboxIndex += n;
     if (currentLightboxIndex >= images.length) currentLightboxIndex = 0;
     if (currentLightboxIndex < 0) currentLightboxIndex = images.length - 1;
@@ -1321,7 +1337,7 @@ function changeLightboxImage(n) {
 function loadVideos() {
     const videoGrid = document.querySelector('#videos .grid');
     if (!videoGrid) return;
-    const videos = STORE.get('videos');
+    const videos = GLOBAL_VIDEO_DATA;
 
     if (videos.length === 0) {
         videoGrid.innerHTML = '<p style="color:var(--text-light); text-align:center; grid-column: 1/-1;">No educational streams deployed yet.</p>';
@@ -1345,7 +1361,7 @@ function loadVideos() {
 function loadNotices() {
     const noticeBoard = document.querySelector('.notice-board');
     if (!noticeBoard) return;
-    const notices = STORE.get('notices');
+    const notices = GLOBAL_NOTICE_DATA;
 
     if (notices.length === 0) {
         noticeBoard.innerHTML = '<p style="color:var(--text-light); text-align:center;">No announcements deployed yet.</p>';
@@ -1367,6 +1383,60 @@ window.addEventListener('DOMContentLoaded', () => {
     loadVideos();
     loadNotices();
 });
+
+// --- Smart Mobile Lag Fix Canvas Engine ---
+(function(){
+    const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const canvas = document.getElementById('bgCanvas');
+    
+    if (isMobile && canvas) {
+        canvas.style.display = 'none';
+        return; 
+    }
+
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let W, H, mouse = {x: -9999, y: -9999}, paused = false;
+
+    function resize(){
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize, {passive:true});
+    resize();
+
+    let particles = [];
+    for(let i=0; i<40; i++){
+        particles.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            radius: Math.random() * 2 + 1,
+            vx: Math.random() * 0.5 - 0.25,
+            vy: Math.random() * 0.5 - 0.25
+        });
+    }
+
+    function animate(){
+        if(paused) return;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = 'rgba(201, 164, 92, 0.15)';
+        
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if(p.x < 0 || p.x > W) p.vx *= -1;
+            if(p.y < 0 || p.y > H) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+            ctx.fill();
+        });
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+</body>
+</html>
 // ══════════════════════════════════════════
 //  PREMIUM FUTURISTIC BACKGROUND ENGINE
 // ══════════════════════════════════════════
