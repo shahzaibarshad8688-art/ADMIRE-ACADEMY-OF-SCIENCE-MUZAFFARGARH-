@@ -1,0 +1,2 @@
+User-agent: *
+Disallow: /admire-admin-portal.html
