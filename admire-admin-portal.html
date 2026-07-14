@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admire Cloud Portal - Live Upload Mode</title>
+  <title>Admire Cloud Portal - Safe Base64 Mode</title>
   <style>
     :root {
       --bg-dark: #0d1117;
@@ -60,11 +60,13 @@
       padding: 15px;
       border-radius: 6px;
       font-family: monospace;
-      font-size: 13px;
-      overflow-x: auto;
+      font-size: 11px;
+      max-height: 150px;
+      overflow-y: auto;
       white-space: pre-wrap;
       border: 1px solid var(--border-color);
       margin-top: 15px;
+      word-break: break-all;
     }
   </style>
 </head>
@@ -72,27 +74,27 @@
 
   <!-- Auth Layer -->
   <div id="authShield" class="container">
-    <h2>🔑 Admire Cloud Terminal</h2>
+    <h2>🔑 Admire Secure Portal</h2>
     <input type="password" id="portalPass" placeholder="Enter Secure Master Password...">
     <button onclick="verifyAccess()">Unlock Console →</button>
   </div>
 
   <!-- Main Console -->
   <div id="mainConsole" class="container" style="display:none;">
-    <h3>🖼️ Admire Live Cloud Uploader</h3>
+    <h3>🖼️ Admire Safe Image Converter</h3>
     <p style="font-size: 13px; color: var(--text-main); margin-bottom: 20px;">
-      Yahan se jo bhi image select kar ke upload karenge, woh cloud par upload ho kar automatic live link banayegi!
+      Yeh system bina kisi network error ke aapki image ko safe compressed format mein badal dega jo poori dunya mein live show hogi!
     </p>
 
-    <div id="statusText">⏳ Processing Image Security Matrix... Please wait...</div>
+    <div id="statusText">⏳ Optimizing & Compressing Image... Please wait...</div>
 
     <input type="file" id="imgFile" accept="image/*">
     <input type="text" id="imgCaption" placeholder="Image Caption (e.g., Admission Open 2026)...">
-    <button onclick="uploadToCloud()">Upload & Generate Code</button>
+    <button onclick="convertToBase64()">Process & Generate Code</button>
 
     <div id="resultSection" style="display: none;">
-      <h4 style="color: var(--success); margin-bottom: 5px;">✅ Image Uploaded Successfully!</h4>
-      <p style="font-size: 13px; margin-bottom: 5px;">Niche diye gaye pure code block ko copy karein aur apni website ki <strong>index.html</strong> file ke <strong>GLOBAL_GALLERY_DATA</strong> section mein paste kar dein:</p>
+      <h4 style="color: var(--success); margin-bottom: 5px;">✅ Code Generated Perfectly!</h4>
+      <p style="font-size: 13px; margin-bottom: 5px;">Is code block ko copy karein aur apni website ki <strong>index.html</strong> file ke <strong>GLOBAL_GALLERY_DATA</strong> section mein paste kar dein:</p>
       <div id="outputCode" class="code-box"></div>
       <button onclick="copyGeneratedCode()" style="background: var(--accent); margin-top: 10px;">Copy Generated Code 📋</button>
     </div>
@@ -109,7 +111,7 @@ function verifyAccess(){
   }
 }
 
-function uploadToCloud() {
+function convertToBase64() {
   const fileInput = document.getElementById('imgFile');
   const captionInput = document.getElementById('imgCaption');
   const file = fileInput.files[0];
@@ -121,51 +123,58 @@ function uploadToCloud() {
   if(!file){ alert('Pehle koi image select karein.'); return; }
 
   status.style.display = "block";
-  status.innerHTML = "⏳ Uploading image to Secure Cloud Gateway... Please wait...";
   resultSection.style.display = "none";
 
-  // Form Data to send to Imgur Free Hosting API
-  const formData = new FormData();
-  formData.append('image', file);
-
-  // Free Client ID for Admire Academy
-  const CLIENT_ID = '440c863a6c07a70';
-
-  fetch('https://api.imgur.com/3/image', {
-    method: 'POST',
-    headers: {
-      Authorization: `Client-ID ${CLIENT_ID}`
-    },
-    body: formData
-  })
-  .then(response => response.json())
-  .then(data => {
-    status.style.display = "none";
-    if (data.success) {
-      const liveLink = data.data.link; // This is the live permanent image link!
+  const reader = new FileReader();
+  reader.onload = function(event){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
       
-      // Generate clean JS array object code
-      const generatedCode = `{\n  id: ${Date.now()},\n  src: "${liveLink}",\n  caption: "${caption}"\n},`;
+      // Keep size lightweight for global performance
+      const max_size = 800; 
+      if (width > height) {
+        if (width > max_size) { height *= max_size / width; width = max_size; }
+      } else {
+        if (height > max_size) { width *= max_size / height; height = max_size; }
+      }
       
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Compress to lightweight JPEG Base64
+      const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+      
+      const generatedCode = `{\n  id: ${Date.now()},\n  src: "${compressedBase64}",\n  caption: "${caption}"\n},`;
+      
+      status.style.display = "none";
       outputCode.innerText = generatedCode;
       resultSection.style.display = "block";
-      alert('Cloud Upload Success! Code generate ho gaya hai.');
-    } else {
-      alert('Imgur Upload Failed: ' + data.data.error);
-    }
-  })
-  .catch(error => {
-    status.style.display = "none";
-    alert('Network Error occurred while uploading.');
-    console.error(error);
-  });
+    };
+    img.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function copyGeneratedCode() {
-  const text = document.getElementById('outputCode').innerText;
-  navigator.clipboard.writeText(text).then(() => {
-    alert('Code copied to clipboard successfully! Ab index.html mein paste karein.');
-  });
+  // Use range select to copy heavy base64 strings securely
+  const codeBox = document.getElementById('outputCode');
+  const range = document.createRange();
+  range.selectNode(codeBox);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  
+  try {
+    document.execCommand('copy');
+    alert('Code copied! Ab isay index.html mein paste kar dein.');
+  } catch (err) {
+    alert('Failed to copy. Please manually select and copy the code.');
+  }
+  window.getSelection().removeAllRanges();
 }
 </script>
 </body>
