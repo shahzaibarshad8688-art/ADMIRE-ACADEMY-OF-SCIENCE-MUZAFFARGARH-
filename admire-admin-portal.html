@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admire Portal Control - Permanent Fix</title>
+  <title>Admire Cloud Portal - Live Upload Mode</title>
   <style>
     :root {
       --bg-dark: #0d1117;
@@ -28,17 +28,17 @@
     }
     .container {
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 24px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
     }
     h2, h3 { margin-top: 0; color: #fff; }
     input, textarea, select, button {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 15px;
       background: var(--bg-dark);
       border: 1px solid var(--border-color);
@@ -53,85 +53,48 @@
       font-weight: bold;
     }
     button:hover { opacity: 0.9; }
-    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab {
-      background: var(--bg-dark);
-      padding: 8px 12px;
-      cursor: pointer;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      flex: 1;
-      text-align: center;
-    }
-    .tab.active { background: var(--accent); border-color: var(--accent); }
-    .pane { display: none; }
-    .pane.active { display: block; }
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--bg-dark);
-      padding: 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      margin-bottom: 10px;
-    }
-    .del-btn {
-      background: var(--danger);
-      width: auto;
-      margin: 0;
-      padding: 5px 10px;
-      color: white;
-      border-radius: 4px;
-    }
     #statusText { color: var(--accent); font-weight: bold; text-align: center; margin-bottom: 15px; display: none; }
-    .preview-list { margin-top: 20px; max-height: 250px; overflow-y: auto; padding-right: 5px; }
+    .code-box {
+      background: #000;
+      color: #39ff14;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      border: 1px solid var(--border-color);
+      margin-top: 15px;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Auth Layer -->
   <div id="authShield" class="container">
-    <h2>🔑 Admire Admin Control</h2>
+    <h2>🔑 Admire Cloud Terminal</h2>
     <input type="password" id="portalPass" placeholder="Enter Secure Master Password...">
-    <button onclick="verifyAccess()">Unlock Terminal →</button>
+    <button onclick="verifyAccess()">Unlock Console →</button>
   </div>
 
+  <!-- Main Console -->
   <div id="mainConsole" class="container" style="display:none;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h3>⚙️ Smart Dashboard</h3>
-      <button onclick="lockConsole()" style="width:auto; background:var(--border-color); padding:5px 10px;">Lock</button>
-    </div>
-    
-    <div class="tabs">
-      <div class="tab active" onclick="switchPane('gallery', this)">🖼️ Gallery Management</div>
-      <div class="tab" onclick="switchPane('videos', this)">🎬 Videos</div>
-      <div class="tab" onclick="switchPane('notices', this)">📢 Notices</div>
-    </div>
+    <h3>🖼️ Admire Live Cloud Uploader</h3>
+    <p style="font-size: 13px; color: var(--text-main); margin-bottom: 20px;">
+      Yahan se jo bhi image select kar ke upload karenge, woh cloud par upload ho kar automatic live link banayegi!
+    </p>
 
     <div id="statusText">⏳ Processing Image Security Matrix... Please wait...</div>
 
-    <div id="pane-gallery" class="pane active">
-      <input type="file" id="imgFile" accept="image/*">
-      <input type="text" id="imgCaption" placeholder="Image Caption (Optional)...">
-      <button onclick="saveGalleryImage()">Save to Gallery Layout</button>
-      <h3>📋 Uploaded Images List</h3>
-      <div id="galleryList" class="preview-list"></div>
-    </div>
+    <input type="file" id="imgFile" accept="image/*">
+    <input type="text" id="imgCaption" placeholder="Image Caption (e.g., Admission Open 2026)...">
+    <button onclick="uploadToCloud()">Upload & Generate Code</button>
 
-    <div id="pane-videos" class="pane">
-      <input type="text" id="vidTitle" placeholder="Video Title...">
-      <input type="text" id="vidUrl" placeholder="YouTube Video URL...">
-      <button onclick="saveVideoLink()">Save Video Link</button>
-      <h3>📋 Uploaded Videos List</h3>
-      <div id="videoList" class="preview-list"></div>
-    </div>
-
-    <div id="pane-notices" class="pane">
-      <input type="text" id="noteTitle" placeholder="Notice Heading...">
-      <textarea id="noteText" placeholder="Notice Content Description..." rows="4"></textarea>
-      <button onclick="saveNoticeBoard()">Publish Announcement</button>
-      <h3>📋 Published Announcements</h3>
-      <div id="noticeList" class="preview-list"></div>
+    <div id="resultSection" style="display: none;">
+      <h4 style="color: var(--success); margin-bottom: 5px;">✅ Image Uploaded Successfully!</h4>
+      <p style="font-size: 13px; margin-bottom: 5px;">Niche diye gaye pure code block ko copy karein aur apni website ki <strong>index.html</strong> file ke <strong>GLOBAL_GALLERY_DATA</strong> section mein paste kar dein:</p>
+      <div id="outputCode" class="code-box"></div>
+      <button onclick="copyGeneratedCode()" style="background: var(--accent); margin-top: 10px;">Copy Generated Code 📋</button>
     </div>
   </div>
 
@@ -141,118 +104,68 @@ function verifyAccess(){
   if(p === 'admire1234') {
     document.getElementById('authShield').style.display = 'none';
     document.getElementById('mainConsole').style.display = 'block';
-    // CRITICAL FIX: Load data instantly upon verification unlock!
-    renderDashboardLists();
   } else {
     alert('Security Alert: Access Denied.');
   }
 }
 
-function lockConsole(){
-  document.getElementById('portalPass').value = '';
-  document.getElementById('authShield').style.display = 'block';
-  document.getElementById('mainConsole').style.display = 'none';
-}
-
-function switchPane(id, tabEl){
-  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('pane-'+id).classList.add('active');
-  tabEl.classList.add('active');
-}
-
-function getStorage(k){ return JSON.parse(localStorage.getItem('aa_'+k)) || []; }
-function setStorage(k, v){ localStorage.setItem('aa_'+k, JSON.stringify(v)); renderDashboardLists(); }
-
-function saveGalleryImage(){
+function uploadToCloud() {
   const fileInput = document.getElementById('imgFile');
   const captionInput = document.getElementById('imgCaption');
   const file = fileInput.files[0];
-  const caption = captionInput.value.trim();
+  const caption = captionInput.value.trim() || 'Admire Campus Moment';
   const status = document.getElementById('statusText');
-  
-  if(!file){ alert('Select an image file first.'); return; }
-  
+  const resultSection = document.getElementById('resultSection');
+  const outputCode = document.getElementById('outputCode');
+
+  if(!file){ alert('Pehle koi image select karein.'); return; }
+
   status.style.display = "block";
-  
-  const reader = new FileReader();
-  reader.onload = function(event){
-    const img = new Image();
-    img.onload = function(){
-      const canvas = document.createElement('canvas');
-      let width = img.width;
-      let height = img.height;
+  status.innerHTML = "⏳ Uploading image to Secure Cloud Gateway... Please wait...";
+  resultSection.style.display = "none";
+
+  // Form Data to send to Imgur Free Hosting API
+  const formData = new FormData();
+  formData.append('image', file);
+
+  // Free Client ID for Admire Academy
+  const CLIENT_ID = '440c863a6c07a70';
+
+  fetch('https://api.imgur.com/3/image', {
+    method: 'POST',
+    headers: {
+      Authorization: `Client-ID ${CLIENT_ID}`
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    status.style.display = "none";
+    if (data.success) {
+      const liveLink = data.data.link; // This is the live permanent image link!
       
-      const max_size = 1000; 
-      if (width > height) {
-        if (width > max_size) { height *= max_size / width; width = max_size; }
-      } else {
-        if (height > max_size) { width *= max_size / height; height = max_size; }
-      }
+      // Generate clean JS array object code
+      const generatedCode = `{\n  id: ${Date.now()},\n  src: "${liveLink}",\n  caption: "${caption}"\n},`;
       
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.5);
-      
-      try {
-        const d = getStorage('gallery');
-        d.unshift({ id: Date.now(), src: compressedDataUrl, caption: caption || 'Gallery Image Asset' });
-        setStorage('gallery', d);
-        fileInput.value = '';
-        captionInput.value = '';
-        status.style.display = "none";
-        alert('Success: Image optimized and deployed to website perfectly!');
-      } catch(err) {
-        status.style.display = "none";
-        alert('Storage full. Please wipe some old assets first.');
-      }
-    };
-    img.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
+      outputCode.innerText = generatedCode;
+      resultSection.style.display = "block";
+      alert('Cloud Upload Success! Code generate ho gaya hai.');
+    } else {
+      alert('Imgur Upload Failed: ' + data.data.error);
+    }
+  })
+  .catch(error => {
+    status.style.display = "none";
+    alert('Network Error occurred while uploading.');
+    console.error(error);
+  });
 }
 
-function saveVideoLink(){
-  const t = document.getElementById('vidTitle').value.trim();
-  const u = document.getElementById('vidUrl').value.trim();
-  if(!t || !u){ alert('Fill out title and link parameters.'); return; }
-  const d = getStorage('videos');
-  d.unshift({ id: Date.now(), title: t, url: u });
-  setStorage('videos', d);
-  document.getElementById('vidTitle').value = '';
-  document.getElementById('vidUrl').value = '';
-  alert('Success: Video stream deployed!');
-}
-
-function saveNoticeBoard(){
-  const t = document.getElementById('noteTitle').value.trim();
-  const txt = document.getElementById('noteText').value.trim();
-  if(!t || !txt){ alert('Enter notice content completely.'); return; }
-  const d = getStorage('notices');
-  d.unshift({ id: Date.now(), title: t, text: txt, date: new Date().toLocaleDateString() });
-  setStorage('notices', d);
-  document.getElementById('noteTitle').value = '';
-  document.getElementById('noteText').value = '';
-  alert('Success: Announcement published!');
-}
-
-function deleteItem(type, id){
-  if(!confirm('Confirm deletion?')) return;
-  const d = getStorage(type).filter(item => item.id !== id);
-  setStorage(type, d);
-}
-
-function renderDashboardLists(){
-  const gl = document.getElementById('galleryList');
-  const vl = document.getElementById('videoList');
-  const nl = document.getElementById('noticeList');
-  
-  if(gl) gl.innerHTML = getStorage('gallery').map(i => `<div class="item-row"><span>🖼️ ${i.caption}</span><button class="del-btn" onclick="deleteItem('gallery', ${i.id})">Wipe</button></div>`).join('');
-  if(vl) vl.innerHTML = getStorage('videos').map(v => `<div class="item-row"><span>🎬 ${v.title}</span><button class="del-btn" onclick="deleteItem('videos', ${v.id})">Wipe</button></div>`).join('');
-  if(nl) nl.innerHTML = getStorage('notices').map(n => `<div class="item-row"><span>📢 [${n.date}] ${n.title}</span><button class="del-btn" onclick="deleteItem('notices', ${n.id})">Wipe</button></div>`).join('');
+function copyGeneratedCode() {
+  const text = document.getElementById('outputCode').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Code copied to clipboard successfully! Ab index.html mein paste karein.');
+  });
 }
 </script>
 </body>
